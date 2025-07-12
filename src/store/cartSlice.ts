@@ -4,6 +4,7 @@ import axios from "axios";
 import { toast } from "sonner";
 
 export interface Product {
+    id: string;
     _id: string;
     title: string;
     price: number;
@@ -60,20 +61,27 @@ export const fetchCart = createAsyncThunk<CartItem[], void>(
                     `${import.meta.env.VITE_BASE_URL}/api/cart/get`,
                     { withCredentials: true }
                 );
-                const serverCart = response.data.cart as CartItem[];
 
-                // Create a map from serverCart for efficient lookup
+                console.log("Fetched cart from server:", response.data.cart);
+                const serverCart = Array.isArray(response.data.cart) ? response.data.cart : [];
+
+                // Filter serverCart to ensure valid product IDs
+                const validServerCart = serverCart.filter((item: CartItem) => item.productId && item.productId._id);
+
+                // Create a map from validServerCart for efficient lookup
                 const mergedCartMap = new Map<string, CartItem>();
-                serverCart.forEach(item => mergedCartMap.set(item.productId._id, { ...item }));
+                validServerCart.forEach((item: CartItem) => mergedCartMap.set(item.productId._id, { ...item }));
 
-                // Merge local storage cart with server cart
+                // Merge local storage cart with server cart, ensuring local items are also valid
                 for (const localItem of localCart) {
-                    const existingServerItem = mergedCartMap.get(localItem.productId._id);
-                    if (existingServerItem) {
-                        // Use the maximum count between local and server to prevent doubling
-                        existingServerItem.count = Math.max(existingServerItem.count, localItem.count);
-                    } else {
-                        mergedCartMap.set(localItem.productId._id, localItem);
+                    if (localItem.productId && localItem.productId._id) { // Validate local item as well
+                        const existingServerItem = mergedCartMap.get(localItem.productId._id);
+                        if (existingServerItem) {
+                            // Use the maximum count between local and server to prevent doubling
+                            existingServerItem.count = Math.max(existingServerItem.count, localItem.count);
+                        } else {
+                            mergedCartMap.set(localItem.productId._id, localItem);
+                        }
                     }
                 }
                 const mergedCart = Array.from(mergedCartMap.values());
@@ -102,21 +110,27 @@ export const addToCart = createAsyncThunk<
 >(
     "cart/addToCart",
     async ({ productId, count }, { getState }) => {
+        // console.log("addToCart called with productId:", productId, "count:", count);
         const { auth, products } = getState() as any;
+        // console.log( "products:", products, "products.products:", products.products);
         const currentLocalCart = getLocalStorageCart();
+        console.log("Local cart before add/update:", currentLocalCart);
 
         const productToAdd = products.products.find(
-            (product: Product) => product._id === productId
+            (product: Product) => product.id === productId
         );
 
         if (!productToAdd) {
+            console.log("Product not found for ID:", productId);
             toast.error("Product not found.");
             return currentLocalCart; // Return current cart if product not found
         }
+        console.log("Product found to add:", productToAdd);
 
         const existingItemIndex = currentLocalCart.findIndex(
-            (item) => item.productId._id === productId
+            (item) => item.productId.id === productId
         );
+        // console.log("Existing item index:", existingItemIndex);
 
         let updatedLocalCart;
         if (existingItemIndex > -1) {
@@ -125,24 +139,32 @@ export const addToCart = createAsyncThunk<
                     ? { ...item, count: item.count + count }
                     : item
             );
+            console.log("Updating existing cart item:", updatedLocalCart[existingItemIndex]);
         } else {
             updatedLocalCart = [
                 ...currentLocalCart,
                 { productId: productToAdd, count },
             ];
+            console.log("Adding new cart item:", { productId: productToAdd, count });
         }
 
         saveLocalStorageCart(updatedLocalCart);
+
+        const idtoSend = productToAdd._id;
+        console.log("Local cart after add/update:", updatedLocalCart);
         if (auth.isAuthenticated) {
             try {
+                console.log("Attempting to add to cart on server...");
                 await axios.post(
                     `${import.meta.env.VITE_BASE_URL}/api/cart/add`,
-                    { productId, count },
+                    { productId: idtoSend, count },
                     { withCredentials: true }
                 );
+                console.log("Successfully added to cart on server.");
                 // After successful server update, refetch cart to ensure consistency
                 // dispatch(fetchCart()); // Removed redundant dispatch
             } catch (error: any) {
+                console.error("Failed to add to cart on server:", error);
                 toast.error("Failed to add to cart on server");
                 // Optionally revert local storage change or inform user
                 throw new Error(error?.message || "Failed to add to cart on server");
@@ -161,9 +183,14 @@ export const removeFromCart = createAsyncThunk<
         const { auth } = getState() as any;
         const currentLocalCart = getLocalStorageCart();
 
+        console.log("Id", productId);
+
         const updatedLocalCart = currentLocalCart.filter(
             (item) => item.productId._id !== productId
         );
+
+
+        console.log("Updated local cart after removal:", updatedLocalCart);
 
         saveLocalStorageCart(updatedLocalCart);
         if (auth.isAuthenticated) {

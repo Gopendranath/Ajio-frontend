@@ -6,14 +6,14 @@ import { Heart } from "lucide-react";
 import { useSelector } from "react-redux";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { addToWishlist, removeFromWishlist } from "@/store/wishlistSlice";
-import { addToCart } from "@/store/cartSlice";
 import type { RootState } from "@/store"; // Import RootState
 
 interface ProductCardProps {
   product: Product;
+  onAddToCart: () => void;
 }
 
-export const ProductCard = ({ product }: ProductCardProps) => {
+export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { items: wishlistItems } = useSelector(
@@ -37,7 +37,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
-    dispatch(addToCart({ productId: product._id, count: 1 }));
+    onAddToCart(); // Call the prop directly
   };
 
   return (
@@ -45,7 +45,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
       <div className="relative h-40 sm:h-48 w-full overflow-hidden rounded-xl bg-muted">
         <img
           src={product.image}
-          alt={product.title}
+          alt={product.title || 'Product Image'}
           className="h-full w-full object-cover transition-transform hover:scale-105 cursor-pointer"
           onClick={handleNavigate}
         />
@@ -66,7 +66,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
               className="text-base sm:text-lg font-semibold cursor-pointer"
               onClick={handleNavigate}
             >
-              {product.title.slice(0, 20)}...
+              {(product.title || 'Unknown Product').slice(0, 20)}...
             </h3>
             <p className="text-xs text-muted-foreground">{product.category}</p>
           </div>

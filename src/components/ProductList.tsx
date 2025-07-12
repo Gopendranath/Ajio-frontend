@@ -3,13 +3,15 @@ import { useSelector } from "react-redux";
 import type { RootState } from "@/store";
 import { ProductCard } from "./ProductCard";
 import { Link } from "react-router-dom";
-
+import { useAppDispatch } from "@/hooks/useAppDispatch"; // Import useAppDispatch
+import { addToCart } from "../store/cartSlice"; // Import addToCart
 
 
 const ProductList: React.FC<{ category: string }> = ({ category }) => {
   const productScrollRef = useRef<HTMLDivElement>(null);
   const { products } = useSelector((state: RootState) => state.products);
   const filteredProducts = products.filter((product) => product.category === category);
+  const dispatch = useAppDispatch(); // Initialize dispatch
 
 
   const scrollProducts = (direction: "left" | "right") => {
@@ -69,7 +71,7 @@ const ProductList: React.FC<{ category: string }> = ({ category }) => {
               <ProductCard
                 product={product}
                 onAddToCart={() => {
-                  console.log(product.id);
+                  dispatch(addToCart({ productId: product.id, count: 1 })); // Dispatch addToCart action
                 }}
               />
             </div>

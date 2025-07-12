@@ -149,14 +149,14 @@ export function WishlistPage() {
                     <div className="h-16 w-16 rounded-md overflow-hidden border">
                       <img
                         src={item.image}
-                        alt={item.title} // Changed item.name to item.title
+                        alt={item.title || 'Product Image'} // Changed item.name to item.title
                         className="object-cover w-full h-full"
                       />
                     </div>
                   </TableCell>
                   <TableCell>
                     <Link to={`/product/${item.id}`}> {/* Added Link to product details page */}
-                      <div className="font-medium">{item.title}</div> {/* Changed item.name to item.title */}
+                      <div className="font-medium">{item.title || 'Unknown Product'}</div> {/* Changed item.name to item.title */}
                     </Link>
                     {/* Removed Date Added from display */}
                   </TableCell>

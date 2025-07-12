@@ -68,7 +68,7 @@ export default function ModernCart() {
   ];
 
   const subtotal = items.reduce(
-    (sum, item) => sum + item.productId.price * item.count,
+    (sum, item) => sum + (item.productId?.price || 0) * item.count,
     0,
   );
   const shipping = shippingMethods.find((m) => m.id === shippingMethod)?.price || 0;
@@ -100,15 +100,15 @@ export default function ModernCart() {
           </div>
 
           <div className="space-y-4">
-            {items.map((item) => (
-              <Card key={item.productId._id} className="overflow-hidden p-0">
+            {items.filter(item => item.productId && item.productId.price !== undefined && item.productId._id !== undefined).map((item) => (
+              <Card key={item.productId?._id} className="overflow-hidden p-0">
                 <CardContent className="p-0">
                   <div className="flex h-full flex-col md:flex-row">
                     {/* Product Image */}
                     <div className="relative h-auto w-full md:w-32">
                       <img
-                        src={item.productId.image}
-                        alt={item.productId.title}
+                        src={item.productId?.image || ''}
+                        alt={item.productId?.title || 'Product Image'}
                         width={500}
                         height={500}
                         className="h-full w-full object-cover md:w-32"
@@ -119,7 +119,7 @@ export default function ModernCart() {
                     <div className="flex-1 p-6 pb-3">
                       <div className="flex justify-between">
                         <div>
-                          <h3 className="font-medium">{item.productId.title}</h3>
+                          <h3 className="font-medium">{item.productId?.title || 'Unknown Product'}</h3>
                           <p className="text-muted-foreground text-sm">
                             {/* Assuming color and size are not available in product object directly */}
                             N/A
@@ -128,7 +128,7 @@ export default function ModernCart() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => removeItem(item.productId._id)}
+                          onClick={() => removeItem(item.productId?._id || '' )}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -139,7 +139,7 @@ export default function ModernCart() {
                           <Button
                             variant="outline"
                             size="icon"
-                            onClick={() => updateQuantity(item.productId._id, -1)}
+                            onClick={() => updateQuantity(item.productId?._id || '', -1)}
                           >
                             <Minus className="h-4 w-4" />
                           </Button>
@@ -149,7 +149,7 @@ export default function ModernCart() {
                           <Button
                             variant="outline"
                             size="icon"
-                            onClick={() => updateQuantity(item.productId._id, 1)}
+                            onClick={() => updateQuantity(item.productId?._id || '', 1)}
                           >
                             <Plus className="h-4 w-4" />
                           </Button>
@@ -157,7 +157,7 @@ export default function ModernCart() {
 
                         <div className="text-right">
                           <div className="font-medium">
-                            ${(item.productId.price * item.count).toFixed(2)}
+                            ${((item.productId?.price || 0) * item.count).toFixed(2)}
                           </div>
                           {/* originalPrice not in product type */}
                         </div>
@@ -203,7 +203,7 @@ export default function ModernCart() {
                             {method.estimatedDays}
                           </div>
                           <div className="font-medium">
-                            ${method.price.toFixed(2)}
+                            ${(method?.price || 0).toFixed(2)}
                           </div>
                         </div>
                       </SelectItem>
