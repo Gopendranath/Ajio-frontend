@@ -17,7 +17,7 @@ interface User {
   phone?: string;
 }
 
-const url = "http://localhost:3000/api";
+const url = import.meta.env.VITE_BASE_URL
 
 const initialState = {
   user: null as User | null,
@@ -31,7 +31,7 @@ export const signupUser = createAsyncThunk(
   "auth/signupUser",
   async (userData: any, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${url}/auth/signup`, userData, { withCredentials: true });
+      const response = await axios.post(`${url}/api/auth/signup`, userData, { withCredentials: true });
       console.log("signed up")
       return response.data.user;
     } catch (error: any) {
@@ -49,7 +49,7 @@ export const signinUser = createAsyncThunk(
   "auth/signinUser",
   async (credentials: any, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${url}/auth/signin`, credentials, { withCredentials: true });
+      const response = await axios.post(`${url}/api/auth/signin`, credentials, { withCredentials: true });
       console.log("signed in")
       return response.data.user;
     } catch (error: any) {
@@ -67,7 +67,7 @@ export const signoutUser = createAsyncThunk(
   "auth/signoutUser",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`${url}/auth/signout`, { withCredentials: true });
+      const response = await axios.get(`${url}/api/auth/signout`, { withCredentials: true });
       console.log("signed out")
       toast.success("User signed out");
       return response.data;
@@ -86,7 +86,7 @@ export const changePasswordUser = createAsyncThunk(
   "auth/changePasswordUser",
   async (passwordData: any, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${url}/auth/changepassword`, passwordData, { withCredentials: true });
+      const response = await axios.post(`${url}/api/auth/changepassword`, passwordData, { withCredentials: true });
       console.log("password changed")
       return response.data.user;
     } catch (error: any) {
@@ -104,7 +104,7 @@ export const verifyAuthUser = createAsyncThunk(
   "auth/verifyAuthUser",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${url}/auth/verifyauth`, {}, { withCredentials: true });
+      const response = await axios.post(`${url}/api/auth/verifyauth`, {}, { withCredentials: true });
       console.log("auth verified")
       return response.data.user;
     } catch (error: any) {
@@ -122,7 +122,7 @@ export const verifyAuthUser = createAsyncThunk(
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 export const redirectToGoogleLogin = () => {
-  const redirectUri = "http://localhost:3000/api/auth/google/callback";
+  const redirectUri = `${import.meta.env.VITE_BASE_URL}/api/auth/google/callback`;
   const scope = "profile email";
   const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&prompt=select_account`;
 
