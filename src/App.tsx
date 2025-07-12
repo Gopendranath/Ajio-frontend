@@ -16,22 +16,25 @@ import Signup from "./components/signup";
 import ProductDetails from "./components/ProductDetails";
 import ProductCategory from "./components/ProductCategory";
 import SearchedPage from "./components/SearchedPage";
-import { useDispatch } from "react-redux";
-import { useEffect } from "react";
-import { fetchProducts } from "./store/productsSlice";
-import type { AppDispatch } from "./store";
 import React from "react";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { Toaster } from "sonner";
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { verifyAuthUser } from "@/store/authSlice";
+import type { AppDispatch } from "@/store";
 
 function App() {
   const location = useLocation();
   const dispatch = useDispatch<AppDispatch>();
+
+  useEffect(() => {
+    dispatch(verifyAuthUser());
+  }, [dispatch]);
+
   const isAuthPage =
     location.pathname === "/sign-in" || location.pathname === "/sign-up";
 
-  useEffect(() => {
-    dispatch(fetchProducts());
-  }, [dispatch]);
 
   if (isAuthPage) {
     return (
@@ -128,7 +131,7 @@ function App() {
             }
           />
           <Route
-            path="/products/:category"
+            path="/category/:category"
             element={
               <Page title="Products">
                 <ProductCategory />
@@ -157,6 +160,7 @@ function App() {
       <div className="sm:hidden">
         <NavigationMenuMobile />
       </div>
+      <Toaster />
     </ThemeProvider>
   );
 }

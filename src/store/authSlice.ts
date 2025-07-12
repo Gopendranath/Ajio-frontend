@@ -1,174 +1,242 @@
-import { createSlice, createAsyncThunk, createSelector } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import type { PayloadAction } from "@reduxjs/toolkit";
 import axios from "axios";
-import type { RootState } from ".";
+import { toast } from "sonner";
 
-// Read from localStorage if available
-const getParsedItem = (key: string) => {
-  try {
-    const item = localStorage.getItem(key);
-    return item ? JSON.parse(item) : null;
-  } catch (error) {
-    console.error(`Failed to parse localStorage item "${key}":`, error);
-    localStorage.removeItem(key); // Clear the corrupted item
-    return null;
-  }
-};
-
-const storedUser = getParsedItem("user");
-const storedToken = getParsedItem("token");
-
-interface AuthState {
-  user: string | null;
-  token: string | null;
-  loading: boolean;
-  error: string | null;
+interface User {
+  _id: string;
+  name: string;
+  email: string;
+  profilePicture?: string;
+  provider?: string;
+  providerId?: string;
+  cart?: any[];
+  orders?: any[];
+  wishlist?: any[];
+  address?: any[];
+  phone?: string;
 }
 
-const initialState: AuthState = {
-  user: storedUser,
-  token: storedToken,
-  loading: false,
-  error: null,
+const url = "http://localhost:3000/api";
+
+const initialState = {
+  user: null as User | null,
+  loading: true,
+  error: null as any,
+  isAuthenticated: false,
 };
 
-// Async thunk for login
-export const loginUser = createAsyncThunk(
-  "auth/loginUser",
-  async (
-    { email, password }: { email: string; password: string },
-    { rejectWithValue }
-  ) => {
+// Async Thunk for SignUp
+export const signupUser = createAsyncThunk(
+  "auth/signupUser",
+  async (userData: any, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
-        "https://reqres.in/api/login",
-        {
-          email,
-          password,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": "reqres-free-v1",
-          },
-        }
-      );
-      return { token: response.data.token, user: email };
-    } catch (err: any) {
-      return rejectWithValue(
-        err.response?.data?.error || "Login failed. Please try again."
-      );
+      const response = await axios.post(`${url}/auth/signup`, userData, { withCredentials: true });
+      console.log("signed up")
+      return response.data.user;
+    } catch (error: any) {
+      if (axios.isAxiosError(error) && error.response) {
+        return rejectWithValue(error.response.data.message || "Failed to sign up.");
+      } else {
+        return rejectWithValue(error.message || "An unknown error occurred.");
+      }
     }
   }
 );
 
-// Async thunk for registration
-export const registerUser = createAsyncThunk(
-  "auth/registerUser",
-  async (
-    { email, password }: { email: string; password: string },
-    { rejectWithValue }
-  ) => {
+// Async Thunk for SignIn
+export const signinUser = createAsyncThunk(
+  "auth/signinUser",
+  async (credentials: any, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
-        "https://reqres.in/api/register",
-        {
-          email,
-          password,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": "reqres-free-v1",
-          },
-        }
-      );
-      return { token: response.data.token, user: email };
-    } catch (err: any) {
-      return rejectWithValue(
-        err.response?.data?.error || "Signup failed. Please try again."
-      );
+      const response = await axios.post(`${url}/auth/signin`, credentials, { withCredentials: true });
+      console.log("signed in")
+      return response.data.user;
+    } catch (error: any) {
+      if (axios.isAxiosError(error) && error.response) {
+        return rejectWithValue(error.response.data.message || "Failed to sign in.");
+      } else {
+        return rejectWithValue(error.message || "An unknown error occurred.");
+      }
     }
   }
 );
 
-export const isAuthenticated = createSelector(
-  (state: RootState) => state.auth.token,
-  (token) => {
-    console.log(token);
-    return token !== null;
-  }
-);
-
-export const logoutUser = createAsyncThunk(
-  "auth/logoutUser",
+// Async Thunk for SignOut
+export const signoutUser = createAsyncThunk(
+  "auth/signoutUser",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.post("https://reqres.in/api/logout", {}, {
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": "reqres-free-v1",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      const response = await axios.get(`${url}/auth/signout`, { withCredentials: true });
+      console.log("signed out")
+      toast.success("User signed out");
       return response.data;
-    } catch (err: any) {
-      return rejectWithValue(err.response?.data?.error || "Logout failed. Please try again.");
+    } catch (error: any) {
+      if (axios.isAxiosError(error) && error.response) {
+        return rejectWithValue(error.response.data.message || "Failed to sign out.");
+      } else {
+        return rejectWithValue(error.message || "An unknown error occurred.");
+      }
     }
   }
 );
 
+// Async Thunk for Change Password
+export const changePasswordUser = createAsyncThunk(
+  "auth/changePasswordUser",
+  async (passwordData: any, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(`${url}/auth/changepassword`, passwordData, { withCredentials: true });
+      console.log("password changed")
+      return response.data.user;
+    } catch (error: any) {
+      if (axios.isAxiosError(error) && error.response) {
+        return rejectWithValue(error.response.data.message || "Failed to change password.");
+      } else {
+        return rejectWithValue(error.message || "An unknown error occurred.");
+      }
+    }
+  }
+);
 
-  const authSlice = createSlice({
+// Async Thunk for Verify Auth
+export const verifyAuthUser = createAsyncThunk(
+  "auth/verifyAuthUser",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(`${url}/auth/verifyauth`, {}, { withCredentials: true });
+      console.log("auth verified")
+      return response.data.user;
+    } catch (error: any) {
+      if (axios.isAxiosError(error) && error.response) {
+        console.error("Verify Auth Rejected:", error.response.data.message);
+        return rejectWithValue(error.response.data.message || "Failed to verify authentication.");
+      } else {
+        console.error("Verify Auth Error:", error.message);
+        return rejectWithValue(error.message || "An unknown error occurred.");
+      }
+    }
+  }
+);
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+export const redirectToGoogleLogin = () => {
+  const redirectUri = "http://localhost:3000/api/auth/google/callback";
+  const scope = "profile email";
+  const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&prompt=select_account`;
+
+  window.location.href = url;
+};
+
+const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    logout(state) {
+    // These are no longer needed as extraReducers will handle async actions
+    // signin: (state, action) => {},
+    // signup: (state, action) => {},
+    signout: (state) => {
       state.user = null;
-      state.token = null;
+      state.isAuthenticated = false;
+      state.loading = false;
       state.error = null;
-      // Remove from localStorage
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
+      console.log("signout reducer: isAuthenticated set to false");
     },
+    // changePassword: (state, action) => {},
+    // verifyAuth: (state, action) => {},
+    // googleAuth: (state, action) => {},
   },
   extraReducers: (builder) => {
     builder
-      .addCase(loginUser.pending, (state) => {
+      .addCase(signupUser.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(loginUser.fulfilled, (state, action) => {
+      .addCase(signupUser.fulfilled, (state, action: PayloadAction<User>) => {
         state.loading = false;
-        state.token = action.payload.token;
-        state.user = action.payload.user;
+        state.isAuthenticated = true;
+        state.user = action.payload;
         state.error = null;
-        // Save to localStorage
-        localStorage.setItem("user", JSON.stringify(action.payload.user));
-        localStorage.setItem("token", JSON.stringify(action.payload.token));
+        // console.log("signupUser.fulfilled: isAuthenticated set to", state.isAuthenticated);
       })
-      .addCase(loginUser.rejected, (state, action) => {
+      .addCase(signupUser.rejected, (state, action: PayloadAction<any>) => {
         state.loading = false;
-        state.error = action.payload as string;
+        state.isAuthenticated = false;
+        state.user = null;
+        state.error = action.payload;
+        // console.log("signupUser.rejected: isAuthenticated set to", state.isAuthenticated);
       })
-      .addCase(registerUser.pending, (state) => {
+      .addCase(signinUser.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(registerUser.fulfilled, (state, action) => {
+      .addCase(signinUser.fulfilled, (state, action: PayloadAction<User>) => {
         state.loading = false;
-        state.token = action.payload.token;
-        state.user = action.payload.user;
+        state.isAuthenticated = true;
+        state.user = action.payload;
         state.error = null;
-        // Save to localStorage
-        localStorage.setItem("user", JSON.stringify(action.payload.user));
-        localStorage.setItem("token", JSON.stringify(action.payload.token));
+        // console.log("signinUser.fulfilled: isAuthenticated set to", state.isAuthenticated);
       })
-      .addCase(registerUser.rejected, (state, action) => {
+      .addCase(signinUser.rejected, (state, action: PayloadAction<any>) => {
         state.loading = false;
-        state.error = action.payload as string;
+        state.isAuthenticated = false;
+        state.user = null;
+        state.error = action.payload;
+        // console.log("signinUser.rejected: isAuthenticated set to", state.isAuthenticated);
+      })
+      .addCase(signoutUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(signoutUser.fulfilled, (state) => {
+        state.loading = false;
+        state.isAuthenticated = false;
+        state.user = null;
+        state.error = null;
+        // console.log("signoutUser.fulfilled: isAuthenticated set to", state.isAuthenticated);
+      })
+      .addCase(signoutUser.rejected, (state, action: PayloadAction<any>) => {
+        state.loading = false;
+        state.isAuthenticated = false;
+        state.error = action.payload;
+        // console.log("signoutUser.rejected: isAuthenticated set to", state.isAuthenticated);
+      })
+      .addCase(changePasswordUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(changePasswordUser.fulfilled, (state, action: PayloadAction<User>) => {
+        state.loading = false;
+        state.user = action.payload;
+        state.error = null;
+        // console.log("changePasswordUser.fulfilled: isAuthenticated is", state.isAuthenticated);
+      })
+      .addCase(changePasswordUser.rejected, (state, action: PayloadAction<any>) => {
+        state.loading = false;
+        state.error = action.payload;
+        // console.log("changePasswordUser.rejected: isAuthenticated is", state.isAuthenticated);
+      })
+      .addCase(verifyAuthUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(verifyAuthUser.fulfilled, (state, action: PayloadAction<User>) => {
+        state.loading = false;
+        state.isAuthenticated = true;
+        state.user = action.payload;
+        state.error = null;
+        // console.log("verifyAuthUser.fulfilled: isAuthenticated set to", state.isAuthenticated);
+      })
+      .addCase(verifyAuthUser.rejected, (state, action: PayloadAction<any>) => {
+        state.loading = false;
+        state.isAuthenticated = false;
+        state.user = null;
+        state.error = action.payload;
+        // console.log("verifyAuthUser.rejected: isAuthenticated set to", state.isAuthenticated);
       });
   },
 });
 
-export const { logout } = authSlice.actions;
+export const { signout } = authSlice.actions; // Exporting sync actions
 export default authSlice.reducer;

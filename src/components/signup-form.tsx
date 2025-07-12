@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Link, useNavigate } from "react-router-dom"
 import { useDispatch, useSelector } from "react-redux"
-import { registerUser } from "@/store/authSlice"
+import { signupUser } from "@/store/authSlice"
 import type { AppDispatch } from "@/store";
 
 export function SignUpForm({
@@ -22,6 +22,7 @@ export function SignUpForm({
   const [email, setEmail] = useState("eve.holt@reqres.in");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const dispatch = useDispatch<AppDispatch>();
   const { loading } = useSelector((state: any) => state.auth);
@@ -29,7 +30,7 @@ export function SignUpForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!email || !password || !confirmPassword) {
+    if (!email || !password || !confirmPassword || !name) {
       setError("All fields are required.");
       return;
     }
@@ -38,10 +39,10 @@ export function SignUpForm({
       return;
     }
     try {
-      await dispatch(registerUser({ email, password }));
+      await dispatch(signupUser({ email, password, name })).unwrap();
       navigate("/sign-in");
-    } catch (error) {
-      setError(error as string);
+    } catch (err: any) {
+      setError(err);
     }
   };
 
@@ -66,6 +67,17 @@ export function SignUpForm({
                   required
                   value={email}
                   onChange={e => setEmail(e.target.value)}
+                />
+              </div>
+              <div className="grid gap-3">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="John Doe"
+                  required
+                  value={name}
+                  onChange={e => setName(e.target.value)}
                 />
               </div>
               <div className="grid gap-3">

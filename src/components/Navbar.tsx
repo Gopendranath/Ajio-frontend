@@ -9,6 +9,7 @@ import {
   LogIn,
   UserCircle,
   Package,
+  LogOut
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
@@ -36,6 +37,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "@/store";
+import { signoutUser } from "@/store/authSlice";
 
 // Helper component for a cleaner, collapsible mobile menu item
 function MobileCollapsibleItem({
@@ -75,6 +80,12 @@ export default function Navbar() {
   const [searchInputValue, setSearchInputValue] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
+
+
+  const { user, isAuthenticated } = useSelector(
+    (state: RootState) => state.auth
+  );
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,6 +93,11 @@ export default function Navbar() {
       navigate(`/search?query=${encodeURIComponent(searchInputValue.trim())}`);
       setIsSearchOpen(false);
     }
+  };
+
+  const handleSignOut = async () => {
+    await dispatch(signoutUser());
+    navigate("/");
   };
 
   return (
@@ -109,18 +125,30 @@ export default function Navbar() {
                   {/* Profile section in mobile menu */}
                   <div className="border-b pb-4">
                     <div className="flex items-center space-x-3">
-                      <UserCircle className="h-6 w-6 text-primary" />
+                    {isAuthenticated && user ? <img src={user?.profilePicture || "https://ui-avatars.com/api/?name="+user?.name} alt="User Avatar" className="h-8 w-8 rounded-full" /> : <UserCircle className="h-8 w-8"/>}
                       <div>
-                        <p className="font-medium">Hello, Sign In</p>
+                        <p className="font-medium">
+                          {isAuthenticated && user ? "Hello, " + user.name : "Guest"}
+                        </p>
                         <div className="flex space-x-4 mt-2">
-                          <Button
-                            onClick={() => navigate("/sign-in")}
-                            variant="outline"
-                            size="sm"
-                            className="text-sm"
-                          >
-                            <LogIn className="h-4 w-4 mr-2" /> Login
-                          </Button>
+                          {isAuthenticated ? (
+                            <Button
+                              onClick={handleSignOut}
+                              variant="secondary"
+                              className="text-sm"
+                            >
+                             Sign out
+                            </Button>
+                          ) : (
+                            <Button
+                              onClick={() => navigate("/sign-in")}
+                              variant="outline"
+                              size="sm"
+                              className="text-sm"
+                            >
+                              <LogIn className="h-4 w-4 mr-2" /> Login
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -172,7 +200,9 @@ export default function Navbar() {
                                     {subcat.items.map((subItem) => (
                                       <Link
                                         key={subItem}
-                                        to={`/search?query=${encodeURIComponent(subItem)}`}
+                                        to={`/search?query=${encodeURIComponent(
+                                          subItem
+                                        )}`}
                                         onClick={() => setIsOpen(false)}
                                         className="block text-sm text-muted-foreground hover:text-primary hover:bg-accent px-2 py-1.5 rounded transition-all"
                                       >
@@ -226,7 +256,9 @@ export default function Navbar() {
                                           asChild
                                         >
                                           <Link
-                                            to={`/search?query=${encodeURIComponent(subItem)}`}
+                                            to={`/search?query=${encodeURIComponent(
+                                              subItem
+                                            )}`}
                                             className="block text-sm text-muted-foreground hover:text-primary hover:bg-accent px-2 py-1 rounded transition-all duration-200"
                                           >
                                             {subItem}
@@ -344,7 +376,7 @@ export default function Navbar() {
                     size="icon"
                     className="hidden sm:flex"
                   >
-                    <User className="h-5 w-5" />
+                   {isAuthenticated ? <img src={user?.profilePicture || "https://ui-avatars.com/api/?name="+user?.name} alt="Profile" className="w-8 h-8 rounded-full" /> : <User className="h-5 w-5" />}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-48 mt-2">
@@ -360,12 +392,23 @@ export default function Navbar() {
                   >
                     <Package className="h-4 w-4 mr-2" /> My Orders
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="cursor-pointer text-primary"
-                    onClick={() => navigate("/sign-in")}
-                  >
-                    <LogIn className="h-4 w-4 mr-2" /> Login / Sign Up
-                  </DropdownMenuItem>
+                  {isAuthenticated ? (
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onClick={handleSignOut}
+                    >
+                      <LogOut className="h-4 w-4 mr-2" /> Signout
+                    </DropdownMenuItem>
+                  ) : (
+                    (
+                      <DropdownMenuItem
+                        className="cursor-pointer"
+                        onClick={() => navigate("/sign-in")}
+                      >
+                        <LogIn className="h-4 w-4 mr-2" /> Signin / Signup
+                      </DropdownMenuItem>
+                  )
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
 

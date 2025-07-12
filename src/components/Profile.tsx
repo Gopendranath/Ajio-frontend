@@ -30,6 +30,10 @@ import {
   CalendarIcon,
   MailIcon
 } from "lucide-react";
+import { useSelector, useDispatch } from 'react-redux';
+import { changePasswordUser, signoutUser } from '@/store/authSlice';
+import type { AppDispatch } from "@/store";
+import { useNavigate } from 'react-router-dom';
 
 // --- Placeholder Data ---
 const placeholderUser = {
@@ -47,6 +51,7 @@ const placeholderAddresses = [
   { id: 1, type: 'Home', line1: '123 Main St', city: 'Anytown', state: 'CA', zip: '90210', default: true },
   { id: 2, type: 'Work', line1: '456 Business Ave', city: 'Metropolis', state: 'NY', zip: '10001', default: false },
 ];
+
 
 const OrderRow = ({ order } : { order: any }) => {
 
@@ -139,11 +144,50 @@ const ProfileSection = ({
   addresses = placeholderAddresses 
 }) => {
   const [activeSection, setActiveSection] = useState('overview');
-//   const dispatch = useDispatch();
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [passwordChangeError, setPasswordChangeError] = useState<string | null>(null);
+  const [passwordChangeSuccess, setPasswordChangeSuccess] = useState<string | null>(null);
 
-//   const handleLogout = () => {
-//     dispatch(logout());
-//   };
+  const navigate = useNavigate();
+
+  const dispatch = useDispatch<AppDispatch>();
+  const { loading } = useSelector((state: any) => state.auth);
+
+  const handleChangePassword = async () => {
+    setPasswordChangeError(null);
+    setPasswordChangeSuccess(null);
+
+    if (!oldPassword || !newPassword || !confirmNewPassword) {
+      setPasswordChangeError("All fields are required.");
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setPasswordChangeError("New passwords do not match.");
+      return;
+    }
+
+    try {
+      await dispatch(changePasswordUser({ oldPassword, newPassword })).unwrap();
+      setPasswordChangeSuccess("Password changed successfully!");
+      setOldPassword('');
+      setNewPassword('');
+      setConfirmNewPassword('');
+    } catch (err: any) {
+      setPasswordChangeError(err || "Failed to change password.");
+    }
+  };
+
+  const handleSignout = async () => {
+    try {
+      await dispatch(signoutUser()).unwrap();
+      navigate("/");
+    } catch (err: any) {
+      console.log(err);
+    }
+  };
 
   const renderSectionContent = () => {
     switch (activeSection) {
@@ -227,19 +271,42 @@ const ProfileSection = ({
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="current">Current Password</Label>
-                    <Input id="current" type="password" />
+                    <Input 
+                      id="current" 
+                      type="password" 
+                      value={oldPassword}
+                      onChange={(e) => setOldPassword(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="new">New Password</Label>
-                    <Input id="new" type="password" />
+                    <Input 
+                      id="new" 
+                      type="password" 
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="confirm">Confirm New Password</Label>
-                    <Input id="confirm" type="password" />
+                    <Input 
+                      id="confirm" 
+                      type="password" 
+                      value={confirmNewPassword}
+                      onChange={(e) => setConfirmNewPassword(e.target.value)}
+                    />
                   </div>
+                  {passwordChangeError && (
+                    <div className="text-red-500 text-sm">{passwordChangeError}</div>
+                  )}
+                  {passwordChangeSuccess && (
+                    <div className="text-green-500 text-sm">{passwordChangeSuccess}</div>
+                  )}
                 </CardContent>
                 <CardFooter>
-                  <Button>Update Password</Button>
+                  <Button onClick={handleChangePassword} disabled={loading}>
+                    {loading ? "Updating..." : "Update Password"}
+                  </Button>
                 </CardFooter>
               </Card>
               <Card>
@@ -356,7 +423,7 @@ const ProfileSection = ({
             <Button
               variant="ghost"
               className="w-full justify-start text-destructive hover:text-destructive"
-            //   onClick={handleLogout}
+              onClick={handleSignout}
             >
               <LogOutIcon className="h-5 w-5" />
               <span className="ml-2">Logout</span>

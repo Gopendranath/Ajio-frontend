@@ -7,25 +7,28 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Star, Heart, Share2, ChevronLeft, ChevronRight, Truck } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import type { RootState, AppDispatch } from "@/store";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store";
 import { fetchProductById } from "@/store/productsSlice";
+import { addToWishlist, removeFromWishlist, fetchWishlist } from "@/store/wishlistSlice"; // Import wishlist actions
+import { useAppDispatch } from "@/hooks/useAppDispatch"; // Import useAppDispatch hook
 
 export default function ProductDetails() {
   const { id } = useParams();
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch(); // Use useAppDispatch
   const { selectedProduct, loading, error } = useSelector(
     (state: RootState) => state.products
   );
+  const { items: wishlistItems } = useSelector(
+    (state: RootState) => state.wishlist
+  ); // Get wishlist items
 
   useEffect(() => {
-    const productId = Number(id);
-    if (!isNaN(productId)) {
+    const productId = id;
+    if (productId) {
       dispatch(fetchProductById(productId));
-    } else {
-      console.error("Invalid product ID: ", id);
-      // Optionally, set an error state or redirect
     }
+    dispatch(fetchWishlist()); // Fetch wishlist on component mount
   }, [dispatch, id]);
 
   if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
@@ -36,6 +39,20 @@ export default function ProductDetails() {
   if (!product) {
     return <div className="flex justify-center items-center h-screen">Product not found.</div>;
   }
+
+  const isProductInWishlist = wishlistItems.some(
+    (item) => item.id === product?.id
+  ); // Check if product is in wishlist
+
+  const handleWishlistToggle = () => {
+    if (product) {
+      if (isProductInWishlist) {
+        dispatch(removeFromWishlist(product.id));
+      } else {
+        dispatch(addToWishlist(product.id));
+      }
+    }
+  };
 
   return (
     <div className="bg-background">
@@ -69,8 +86,9 @@ export default function ProductDetails() {
                 variant="ghost"
                 size="icon"
                 className="absolute right-4 top-4 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background"
+                onClick={handleWishlistToggle} // Add onClick handler
               >
-                <Heart className="h-5 w-5" />
+                <Heart className={`h-5 w-5 ${isProductInWishlist ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} /> {/* Conditional styling */}
               </Button>
             </div>
           </div>

@@ -26,19 +26,11 @@ import {
   Truck,
   Shield,
 } from "lucide-react";
-import { useState } from "react";
-
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  originalPrice?: number;
-  quantity: number;
-  image: string;
-  color: string;
-  size: string;
-  stock: number;
-}
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState } from "../store";
+import { fetchCart, updateCart, removeFromCart } from "../store/cartSlice";
+import type { AppDispatch } from "../store";
 
 interface ShippingMethod {
   id: string;
@@ -49,29 +41,12 @@ interface ShippingMethod {
 }
 
 export default function ModernCart() {
-  const [items, setItems] = useState<CartItem[]>([
-    {
-      id: "1",
-      name: "Classic Chronograph Watch",
-      price: 299.99,
-      originalPrice: 399.99,
-      quantity: 1,
-      image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30",
-      color: "Black",
-      size: "Standard",
-      stock: 5,
-    },
-    {
-      id: "2",
-      name: "Sport Diver Watch",
-      price: 199.99,
-      quantity: 2,
-      image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30",
-      color: "Blue",
-      size: "Standard",
-      stock: 3,
-    },
-  ]);
+  const dispatch: AppDispatch = useDispatch();
+  const { items } = useSelector((state: RootState) => state.cart);
+
+  useEffect(() => {
+    dispatch(fetchCart());
+  }, [dispatch]);
 
   const [shippingMethod, setShippingMethod] = useState<string>("standard");
 
@@ -93,30 +68,22 @@ export default function ModernCart() {
   ];
 
   const subtotal = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+    (sum, item) => sum + item.productId.price * item.count,
     0,
   );
-  const shipping =
-    shippingMethods.find((m) => m.id === shippingMethod)?.price || 0;
+  const shipping = shippingMethods.find((m) => m.id === shippingMethod)?.price || 0;
   const total = subtotal + shipping;
 
-  const updateQuantity = (id: string, change: number) => {
-    setItems((prev) =>
-      prev.map((item) => {
-        if (item.id === id) {
-          const newQuantity = Math.max(
-            1,
-            Math.min(item.stock, item.quantity + change),
-          );
-          return { ...item, quantity: newQuantity };
-        }
-        return item;
-      }),
-    );
+  const updateQuantity = (productId: string, change: number) => {
+    const currentItem = items.find((item) => item.productId._id === productId);
+    if (currentItem) {
+      const newQuantity = Math.max(1, currentItem.count + change);
+      dispatch(updateCart({ productId, count: newQuantity }));
+    }
   };
 
-  const removeItem = (id: string) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
+  const removeItem = (productId: string) => {
+    dispatch(removeFromCart({ productId }));
   };
 
   return (
@@ -134,14 +101,14 @@ export default function ModernCart() {
 
           <div className="space-y-4">
             {items.map((item) => (
-              <Card key={item.id} className="overflow-hidden p-0">
+              <Card key={item.productId._id} className="overflow-hidden p-0">
                 <CardContent className="p-0">
                   <div className="flex h-full flex-col md:flex-row">
                     {/* Product Image */}
                     <div className="relative h-auto w-full md:w-32">
                       <img
-                        src={item.image}
-                        alt={item.name}
+                        src={item.productId.image}
+                        alt={item.productId.title}
                         width={500}
                         height={500}
                         className="h-full w-full object-cover md:w-32"
@@ -152,15 +119,16 @@ export default function ModernCart() {
                     <div className="flex-1 p-6 pb-3">
                       <div className="flex justify-between">
                         <div>
-                          <h3 className="font-medium">{item.name}</h3>
+                          <h3 className="font-medium">{item.productId.title}</h3>
                           <p className="text-muted-foreground text-sm">
-                            {item.color} • {item.size}
+                            {/* Assuming color and size are not available in product object directly */}
+                            N/A
                           </p>
                         </div>
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => removeItem(item.id)}
+                          onClick={() => removeItem(item.productId._id)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -171,17 +139,17 @@ export default function ModernCart() {
                           <Button
                             variant="outline"
                             size="icon"
-                            onClick={() => updateQuantity(item.id, -1)}
+                            onClick={() => updateQuantity(item.productId._id, -1)}
                           >
                             <Minus className="h-4 w-4" />
                           </Button>
                           <span className="w-8 text-center">
-                            {item.quantity}
+                            {item.count}
                           </span>
                           <Button
                             variant="outline"
                             size="icon"
-                            onClick={() => updateQuantity(item.id, 1)}
+                            onClick={() => updateQuantity(item.productId._id, 1)}
                           >
                             <Plus className="h-4 w-4" />
                           </Button>
@@ -189,13 +157,9 @@ export default function ModernCart() {
 
                         <div className="text-right">
                           <div className="font-medium">
-                            ${(item.price * item.quantity).toFixed(2)}
+                            ${(item.productId.price * item.count).toFixed(2)}
                           </div>
-                          {item.originalPrice && (
-                            <div className="text-muted-foreground text-sm line-through">
-                              ${(item.originalPrice * item.quantity).toFixed(2)}
-                            </div>
-                          )}
+                          {/* originalPrice not in product type */}
                         </div>
                       </div>
                     </div>

@@ -38,82 +38,14 @@ import {
 //   CheckCircle2,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { fetchWishlist, removeFromWishlist } from "../store/wishlistSlice"
+import { useSelector } from "react-redux"
+import type { RootState } from "../store"
+import { useAppDispatch } from "../hooks/useAppDispatch"
+import { Link } from "react-router-dom"
 
-const wishlistItems = [
-  {
-    id: "WL-1001",
-    name: "Wireless Bluetooth Headphones",
-    price: 5999,
-    dateAdded: "2023-10-15",
-    status: "In Stock",
-    rating: 4.5,
-    image: "/headphones.jpg",
-  },
-  {
-    id: "WL-1002",
-    name: "Smart Watch with Fitness Tracker",
-    price: 8999,
-    dateAdded: "2023-10-18",
-    status: "Low Stock",
-    rating: 4.2,
-    image: "/smartwatch.jpg",
-  },
-  {
-    id: "WL-1003",
-    name: "Wireless Charging Pad",
-    price: 1999,
-    dateAdded: "2023-10-20",
-    status: "Out of Stock",
-    rating: 3.8,
-    image: "/charger.jpg",
-  },
-  {
-    id: "WL-1004",
-    name: "Premium Leather Backpack",
-    price: 4599,
-    dateAdded: "2023-10-22",
-    status: "In Stock",
-    rating: 4.7,
-    image: "/backpack.jpg",
-  },
-  {
-    id: "WL-1005",
-    name: "Noise Cancelling Earbuds",
-    price: 7999,
-    dateAdded: "2023-10-25",
-    status: "In Stock",
-    rating: 4.3,
-    image: "/earbuds.jpg",
-  },
-  {
-    id: "WL-1006",
-    name: "Ultra HD Action Camera",
-    price: 12999,
-    dateAdded: "2023-10-28",
-    status: "Pre-order",
-    rating: 4.6,
-    image: "/camera.jpg",
-  },
-  {
-    id: "WL-1007",
-    name: "Ergonomic Wireless Mouse",
-    price: 2499,
-    dateAdded: "2023-11-01",
-    status: "In Stock",
-    rating: 4.1,
-    image: "/mouse.jpg",
-  },
-  {
-    id: "WL-1008",
-    name: "Portable Bluetooth Speaker",
-    price: 3499,
-    dateAdded: "2023-11-05",
-    status: "In Stock",
-    rating: 4.4,
-    image: "/speaker.jpg",
-  },
-]
+// Removed the hardcoded wishlistItems array
 
 const ITEMS_PER_PAGE = 4
 
@@ -121,11 +53,17 @@ export function WishlistPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState("")
 
-  // Filter items based on search term
-  const filteredItems = wishlistItems.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()))
-  
-  // Calculate pagination
+  const dispatch = useAppDispatch()
+  const wishlist = useSelector((state: RootState) => state.wishlist)
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth)
+
+  useEffect(() => {
+    dispatch(fetchWishlist())
+  }, [dispatch, isAuthenticated]) 
+
+  const filteredItems = wishlist.items.filter(item => 
+    item && item.title && item.title.toLowerCase().includes(searchTerm.toLowerCase())) // Added null/undefined checks
+
   const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE)
   const paginatedItems = filteredItems.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
@@ -136,19 +74,10 @@ export function WishlistPage() {
     setCurrentPage(newPage)
   }
 
-  const getStatusVariant = (status: string) => {
-    switch (status) {
-      case "In Stock":
-        return "default"
-      case "Low Stock":
-        return "secondary"
-      case "Out of Stock":
-        return "destructive"
-      case "Pre-order":
-        return "outline"
-      default:
-        return "outline"
-    }
+  // Removed getStatusVariant as 'status' is not a Product property
+
+  const handleRemoveFromWishlist = (productId: string) => {
+    dispatch(removeFromWishlist(productId))
   }
 
   return (
@@ -208,7 +137,7 @@ export function WishlistPage() {
               <TableHead>Product</TableHead>
               <TableHead>Price</TableHead>
               <TableHead>Rating</TableHead>
-              <TableHead>Status</TableHead>
+              {/* Removed Status column */}
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -220,29 +149,25 @@ export function WishlistPage() {
                     <div className="h-16 w-16 rounded-md overflow-hidden border">
                       <img
                         src={item.image}
-                        alt={item.name}
+                        alt={item.title} // Changed item.name to item.title
                         className="object-cover w-full h-full"
                       />
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="font-medium">{item.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      Added: {item.dateAdded}
-                    </div>
+                    <Link to={`/product/${item.id}`}> {/* Added Link to product details page */}
+                      <div className="font-medium">{item.title}</div> {/* Changed item.name to item.title */}
+                    </Link>
+                    {/* Removed Date Added from display */}
                   </TableCell>
                   <TableCell>₹{item.price.toLocaleString()}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
                       <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                      <span>{item.rating}</span>
+                      <span>{item.rating.rate}</span> {/* Changed item.rating to item.rating.rate */}
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusVariant(item.status)}>
-                      {item.status}
-                    </Badge>
-                  </TableCell>
+                  {/* Removed Status Cell */}
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button size="sm" variant="outline">
@@ -266,7 +191,7 @@ export function WishlistPage() {
                             Share
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-red-500">
+                          <DropdownMenuItem className="text-red-500" onClick={() => handleRemoveFromWishlist(item.id)}> {/* Added onClick handler */}
                             <Trash2 className="mr-2 h-4 w-4" />
                             Remove
                           </DropdownMenuItem>
@@ -276,7 +201,7 @@ export function WishlistPage() {
                   </TableCell>
                 </TableRow>
               ))
-            ) : (
+            ) : ( // When wishlist is empty
               <TableRow>
                 <TableCell colSpan={6} className="h-24 text-center">
                   {searchTerm ? (

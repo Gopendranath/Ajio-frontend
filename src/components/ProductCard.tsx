@@ -3,14 +3,24 @@ import { Button } from "@/components/ui/button";
 import type { Product } from "@/store/productsSlice";
 import { useNavigate } from "react-router-dom";
 import { Heart } from "lucide-react";
+import { useSelector } from "react-redux";
+import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { addToWishlist, removeFromWishlist } from "@/store/wishlistSlice";
+import { addToCart } from "@/store/cartSlice";
+import type { RootState } from "@/store"; // Import RootState
 
 interface ProductCardProps {
   product: Product;
-  onAddToCart: () => void;
 }
 
-export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
+export const ProductCard = ({ product }: ProductCardProps) => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const { items: wishlistItems } = useSelector(
+    (state: RootState) => state.wishlist
+  );
+
+  const isProductInWishlist = wishlistItems.some((item: Product) => item.id === product.id); // Explicitly type 'item'
 
   const handleNavigate = () => {
     navigate(`/product/${product.id}`);
@@ -18,6 +28,16 @@ export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
 
   const handleWishlistToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isProductInWishlist) {
+      dispatch(removeFromWishlist(product.id));
+    } else {
+      dispatch(addToWishlist(product.id));
+    }
+  };
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    dispatch(addToCart({ productId: product._id, count: 1 }));
   };
 
   return (
@@ -31,12 +51,12 @@ export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
         />
         <button
           className={`absolute top-2 right-2 z-10 p-1 rounded-full bg-white/80 hover:bg-white shadow ${
-            // inWishlist ? "text-red-500" : "text-gray-400"
-            ""}`}
+            isProductInWishlist ? "text-red-500" : "text-gray-400"
+          }`}
           onClick={handleWishlistToggle}
-        //   aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
+          aria-label={isProductInWishlist ? "Remove from wishlist" : "Add to wishlist"}
         >
-          <Heart fill={/*inWishlist ? "#ef4444" : "none"*/""} strokeWidth={2} />
+          <Heart fill={isProductInWishlist ? "#ef4444" : "none"} strokeWidth={2} />
         </button>
       </div>
       <CardContent className="flex flex-col gap-4 p-0 mt-2">
@@ -56,7 +76,7 @@ export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
         </div>
         <Button
           className="w-full bg-primary hover:bg-primary/80 cursor-pointer"
-          onClick={onAddToCart}
+          onClick={handleAddToCart}
         >
           Add to Cart
         </Button>

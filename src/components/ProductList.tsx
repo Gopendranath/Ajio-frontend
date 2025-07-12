@@ -31,7 +31,7 @@ const ProductList: React.FC<{ category: string }> = ({ category }) => {
           <h2 className="text-2xl sm:text-xl font-bold text-foreground mb-6">
             Our Products
           </h2>
-          <Link to="/products/all" className="text-primary dark:text-gray-300 hover:underline">
+          <Link to="/category/all" className="text-primary dark:text-gray-300 hover:underline">
             view all{" "}
           </Link>
         </div>

@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Link, useNavigate } from "react-router-dom"
 import React, { useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { loginUser } from "@/store/authSlice"
+import { redirectToGoogleLogin, signinUser } from "@/store/authSlice"
 import type { AppDispatch } from "@/store";
 
 export function LoginForm({
@@ -27,10 +27,10 @@ export function LoginForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await dispatch(loginUser({ email, password }));
+      await dispatch(signinUser({ email, password })).unwrap();
       navigate("/");
-    } catch (error) {
-      console.log(error);
+    } catch (err: any) {
+      console.log(err);
     } 
   };
 
@@ -76,7 +76,12 @@ export function LoginForm({
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Signing in..." : "Signin"}
                 </Button>
-                <Button variant="outline" className="w-full" type="button">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  type="button"
+                  onClick={redirectToGoogleLogin}
+                >
                   Signin with Google
                 </Button>
               </div>
