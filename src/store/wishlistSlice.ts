@@ -30,7 +30,7 @@ export const fetchWishlist = createAsyncThunk<
             );
             return response.data.wishlist as Product[];
         } catch (error: any) {
-            toast.error("Failed to fetch wishlist");
+            // toast.error("Failed to fetch wishlist");
             return rejectWithValue(
                 error.response?.data?.message || "Failed to fetch wishlist"
             );
@@ -55,7 +55,7 @@ export const addToWishlist = createAsyncThunk<
             dispatch(fetchWishlist()); // Fetch wishlist to update client state
             return response.data.wishlist as Product[];
         } catch (error: any) {
-            toast.error("Failed to add to wishlist");
+            // toast.error("Failed to add to wishlist");
             if (error.response && error.response.data) {
                 return rejectWithValue(error.response.data); // Return full error data
             }
@@ -82,7 +82,7 @@ export const removeFromWishlist = createAsyncThunk<
             dispatch(fetchWishlist()); // Fetch wishlist to update client state
             return response.data.wishlist as Product[];
         } catch (error: any) {
-            toast.error("Failed to remove from wishlist");
+            // toast.error("Failed to remove from wishlist");
             if (error.response && error.response.data) {
                 return rejectWithValue(error.response.data); // Return full error data
             }

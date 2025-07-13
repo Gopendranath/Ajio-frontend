@@ -21,6 +21,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { Toaster } from "sonner";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
+import { fetchWishlist } from "./store/wishlistSlice"
+import { fetchCart } from "./store/cartSlice";
 import { verifyAuthUser } from "@/store/authSlice";
 import type { AppDispatch } from "@/store";
 
@@ -29,7 +31,9 @@ function App() {
   const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
+    dispatch(fetchCart());
     dispatch(verifyAuthUser());
+    dispatch(fetchWishlist());
   }, [dispatch]);
 
   const isAuthPage =

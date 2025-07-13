@@ -62,7 +62,7 @@ export const fetchCart = createAsyncThunk<CartItem[], void>(
                     { withCredentials: true }
                 );
 
-                console.log("Fetched cart from server:", response.data.cart);
+                // console.log("Fetched cart from server:", response.data.cart);
                 const serverCart = Array.isArray(response.data.cart) ? response.data.cart : [];
 
                 // Filter serverCart to ensure valid product IDs
@@ -114,7 +114,7 @@ export const addToCart = createAsyncThunk<
         const { auth, products } = getState() as any;
         // console.log( "products:", products, "products.products:", products.products);
         const currentLocalCart = getLocalStorageCart();
-        console.log("Local cart before add/update:", currentLocalCart);
+        // console.log("Local cart before add/update:", currentLocalCart);
 
         const productToAdd = products.products.find(
             (product: Product) => product.id === productId
@@ -125,7 +125,7 @@ export const addToCart = createAsyncThunk<
             toast.error("Product not found.");
             return currentLocalCart; // Return current cart if product not found
         }
-        console.log("Product found to add:", productToAdd);
+        // console.log("Product found to add:", productToAdd);
 
         const existingItemIndex = currentLocalCart.findIndex(
             (item) => item.productId.id === productId
@@ -139,7 +139,7 @@ export const addToCart = createAsyncThunk<
                     ? { ...item, count: item.count + count }
                     : item
             );
-            console.log("Updating existing cart item:", updatedLocalCart[existingItemIndex]);
+            // console.log("Updating existing cart item:", updatedLocalCart[existingItemIndex]);
         } else {
             updatedLocalCart = [
                 ...currentLocalCart,
@@ -160,7 +160,7 @@ export const addToCart = createAsyncThunk<
                     { productId: idtoSend, count },
                     { withCredentials: true }
                 );
-                console.log("Successfully added to cart on server.");
+                // console.log("Successfully added to cart on server.");
                 // After successful server update, refetch cart to ensure consistency
                 // dispatch(fetchCart()); // Removed redundant dispatch
             } catch (error: any) {
@@ -190,7 +190,7 @@ export const removeFromCart = createAsyncThunk<
         );
 
 
-        console.log("Updated local cart after removal:", updatedLocalCart);
+        // console.log("Updated local cart after removal:", updatedLocalCart);
 
         saveLocalStorageCart(updatedLocalCart);
         if (auth.isAuthenticated) {
@@ -267,7 +267,7 @@ const cartSlice = createSlice({
             })
             .addCase(addToCart.fulfilled, (state, action) => {
                 state.loading = false;
-                console.log("addToCart.fulfilled payload:", action.payload);
+                // console.log("addToCart.fulfilled payload:", action.payload);
                 state.items = action.payload;
             })
             .addCase(addToCart.rejected, (state, action) => {
@@ -279,7 +279,7 @@ const cartSlice = createSlice({
             })
             .addCase(removeFromCart.fulfilled, (state, action) => {
                 state.loading = false;
-                console.log("removeFromCart.fulfilled payload:", action.payload);
+                // console.log("removeFromCart.fulfilled payload:", action.payload);
                 state.items = action.payload;
             })
             .addCase(removeFromCart.rejected, (state, action) => {
@@ -291,7 +291,7 @@ const cartSlice = createSlice({
             })
             .addCase(updateCart.fulfilled, (state, action) => {
                 state.loading = false;
-                console.log("updateCart.fulfilled payload:", action.payload);
+                // console.log("updateCart.fulfilled payload:", action.payload);
                 state.items = action.payload;
             })
             .addCase(updateCart.rejected, (state, action) => {

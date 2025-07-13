@@ -82,6 +82,14 @@ export default function Navbar() {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
 
+  const wishlistCount = useSelector(
+    (state: RootState) => state.wishlist.items.length || 0
+  );
+
+  const cartCount = useSelector(
+    (state: RootState) => state.cart.items.length || 0
+  );
+
 
   const { user, isAuthenticated } = useSelector(
     (state: RootState) => state.auth
@@ -420,7 +428,7 @@ export default function Navbar() {
               >
                 <Heart className="h-5 w-5" />
                 <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                  2
+                  {wishlistCount}
                 </span>
               </Button>
               <Button
@@ -431,7 +439,7 @@ export default function Navbar() {
               >
                 <ShoppingBag className="h-5 w-5" />
                 <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                  3
+                  {cartCount}
                 </span>
               </Button>
             </div>

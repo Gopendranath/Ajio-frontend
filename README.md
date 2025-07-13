@@ -1,69 +1,65 @@
-# React + TypeScript + Vite
+# Ajio Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Description
+This is the frontend application for Ajio, an e-commerce platform. It provides a rich user interface for browsing products, managing wishlists, adding items to the cart, and handling user authentication and orders.
 
-Currently, two official plugins are available:
+## Features
+- User Authentication (Login, Signup, Profile Management)
+- Product Browsing and Search
+- Product Details Page
+- Wishlist Functionality
+- Shopping Cart
+- Order Management
+- Responsive Design (Mobile and Desktop)
+- Category-based Navigation
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Installation
 
-## Expanding the ESLint configuration
+To set up the frontend locally, follow these steps:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+1.  **Navigate to the client directory:**
+    ```bash
+    cd client
+    ```
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
+    or if you use yarn:
+    ```bash
+    yarn install
+    ```
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+## Usage
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+To run the frontend application in development mode:
+
+```bash
+npm run dev
+```
+or if you use yarn:
+```bash
+yarn dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+This will start the development server, usually accessible at `http://localhost:5173`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Technologies Used
+- React
+- TypeScript
+- Vite
+- Redux Toolkit (for state management)
+- React Router DOM (for navigation)
+- Tailwind CSS (for styling)
+- Shadcn/ui (for UI components)
+- Axios (for API requests)
+- Lucide React (for icons)
+- Sonner (for toasts)
+- Fuzzy.js (for fuzzy search)
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Contributing
+Contributions are welcome! Please feel free to open issues or submit pull requests.
+
+## License
+[Specify your license here, e.g., MIT License]

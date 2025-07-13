@@ -160,7 +160,7 @@ export function WishlistPage() {
                     </Link>
                     {/* Removed Date Added from display */}
                   </TableCell>
-                  <TableCell>₹{item.price.toLocaleString()}</TableCell>
+                  <TableCell>${item.price.toLocaleString()}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
                       <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
