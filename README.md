@@ -1,7 +1,7 @@
 # Ajio Frontend
 
 ## Description
-This is the frontend application for Ajio, an e-commerce platform. It provides a rich user interface for browsing products, managing wishlists, adding items to the cart, and handling user authentication and orders.
+This is the frontend application for Ajio, an e-commerce platform. It provides a rich user interface for browsing products, managing wishlists, adding items to the cart, and handling user authentication and orders. The backend repository for this project can be found at: https://github.com/Gopendranath/Ajio-backend
 
 ## Features
 - User Authentication (Login, Signup, Profile Management)
